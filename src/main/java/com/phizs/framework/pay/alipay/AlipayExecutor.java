@@ -21,6 +21,8 @@ import com.phizs.framework.pay.bean.OrderRefund;
 import com.phizs.framework.pay.config.AlipayConfig;
 import com.phizs.framework.pay.constants.PayConstants;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import java.io.IOException;
@@ -36,6 +38,9 @@ import java.util.Map;
  */
 
 public class AlipayExecutor implements PayExecutor, RefundExecutor {
+
+
+	private static Logger logger = LoggerFactory.getLogger(AlipayExecutor.class);
 
 	// 支付线程锁
 	private static Object pay_lock = new Object();
@@ -71,6 +76,7 @@ public class AlipayExecutor implements PayExecutor, RefundExecutor {
 	@Override
 	public Map<String, Object> pay(OrderPayment payment) throws Exception {
 		synchronized (pay_lock) {
+            logger.info("alipay order pay request params:",JSON.toJSONString(payment));
 			AlipayClient alipayClient = getClient();
 			// 返回结果
 			Map<String, Object> result = new HashMap<>();
@@ -105,6 +111,8 @@ public class AlipayExecutor implements PayExecutor, RefundExecutor {
 				alipayRequest.setBizContent(content.toJSONString());
 				AlipayTradeWapPayResponse wapPayResponse = alipayClient.pageExecute(alipayRequest);
 				result.put("form", wapPayResponse.getBody());
+
+                logger.info("alipay order "+platformSubType+"pay response data:",JSON.toJSONString(wapPayResponse));
 				// 请求结果
 			} else if (PayConstants.pay_platform_alipay_sub_type_webpc.equals(platformSubType)) {
 				AlipayTradePagePayRequest alipayRequest = new AlipayTradePagePayRequest();
@@ -113,6 +121,7 @@ public class AlipayExecutor implements PayExecutor, RefundExecutor {
 				alipayRequest.setBizContent(content.toJSONString());
 				AlipayTradePagePayResponse pagePayResponse = alipayClient.pageExecute(alipayRequest);
 				result.put("form", pagePayResponse.getBody());
+                logger.info("alipay order "+platformSubType+"pay response data:",JSON.toJSONString(pagePayResponse));
 			}
 			return result;
 		}
@@ -129,6 +138,8 @@ public class AlipayExecutor implements PayExecutor, RefundExecutor {
 	public String queryOrderPayStatus(String out_trade_no) throws Exception {
 		synchronized (pay_lock) {
 			try {
+                logger.info("alipay query order status request params:",JSON.toJSONString(out_trade_no));
+
 				AlipayClient alipayClient = getClient();
 				// 设置请求参数
 				AlipayTradeQueryRequest alipayRequest = new AlipayTradeQueryRequest();
@@ -138,7 +149,7 @@ public class AlipayExecutor implements PayExecutor, RefundExecutor {
 				alipayRequest.setBizContent(content.toJSONString());
 				AlipayTradeQueryResponse response = null;
 				response = alipayClient.execute(alipayRequest);
-
+                logger.info("alipay query order status respons data:",JSON.toJSONString(response));
 				return response.getTradeStatus();
 			} catch (AlipayApiException e) {
 				return PayConstants.pay_alipay_trade_status_EXCEPTION;
@@ -152,7 +163,10 @@ public class AlipayExecutor implements PayExecutor, RefundExecutor {
 		synchronized (pay_lock) {
 			Map<String, Object> result = new HashMap<>();
 			try {
-				AlipayClient alipayClient = getClient();
+
+                logger.info("alipay query order info request params:",JSON.toJSONString(out_trade_no));
+
+                AlipayClient alipayClient = getClient();
 				// 设置请求参数
 				AlipayTradeQueryRequest alipayRequest = new AlipayTradeQueryRequest();
 				// 商户订单号，商户网站订单系统中唯一订单号
@@ -160,9 +174,8 @@ public class AlipayExecutor implements PayExecutor, RefundExecutor {
 				content.put("out_trade_no", out_trade_no);
 				alipayRequest.setBizContent(content.toJSONString());
 				AlipayTradeQueryResponse response = alipayClient.execute(alipayRequest);
-				String body = response.getBody();
-				Map<String, Object> maps = JSON.parseObject(body);
-				result.put("alipay_trade_query_response", maps.get("alipay_trade_query_response"));
+                logger.info("alipay query order info respons data:",JSON.toJSONString(response));
+				result.put("response", response);
 			} catch (AlipayApiException e) {
 				result = null;
 			}
@@ -225,6 +238,8 @@ public class AlipayExecutor implements PayExecutor, RefundExecutor {
 	@Override
 	public Map<String, Object> refund(OrderRefund refund) throws Exception {
 		synchronized (pay_lock) {
+
+            logger.info("alipay order refund request params:",JSON.toJSONString(refund));
 			AlipayClient alipayClient = getClient();
 			// 退款返回结果
 			Map<String, Object> result = new HashMap<>();
@@ -244,9 +259,8 @@ public class AlipayExecutor implements PayExecutor, RefundExecutor {
 
 			alipayRequest.setBizContent(content.toJSONString());
 			AlipayTradeRefundResponse response = alipayClient.execute(alipayRequest);
-			String body = response.getBody();
-			Map<String, Object> maps = JSON.parseObject(body);
-			result.put("alipay_trade_refund_response", maps.get("alipay_trade_refund_response"));
+            logger.info("alipay order refund response data:",JSON.toJSONString(response));
+			result.put("response", response);
 			return result;
 		}
 	}
@@ -262,6 +276,7 @@ public class AlipayExecutor implements PayExecutor, RefundExecutor {
 	@Override
 	public Map<String, Object> queryRefund(OrderRefund refund) throws Exception {
 		synchronized (pay_lock) {
+		    logger.info("alipay query order refund request params:",JSON.toJSONString(refund));
 			AlipayClient alipayClient = getClient();
 			// 退款返回结果
 			Map<String, Object> result = new HashMap<>();
@@ -278,9 +293,9 @@ public class AlipayExecutor implements PayExecutor, RefundExecutor {
 			content.put("out_request_no", out_request_no);
 			alipayRequest.setBizContent(content.toJSONString());
 			AlipayTradeRefundResponse response = alipayClient.execute(alipayRequest);
-			String body = response.getBody();
-			Map<String, Object> maps = JSON.parseObject(body);
-			result.put("alipay_trade_refund_response", maps.get("alipay_trade_refund_response"));
+
+            logger.info("alipay query order refund response data:",JSON.toJSONString(response));
+			result.put("response", response);
 			return result;
 		}
 	}
@@ -299,6 +314,7 @@ public class AlipayExecutor implements PayExecutor, RefundExecutor {
 			in = resource.getInputStream();
 			return IOUtils.toString(in, encoding);
 		} catch (IOException e) {
+            logger.error("load properties key: {} exception",location);
 			return null;
 		} finally {
 			IOUtils.closeQuietly(in);

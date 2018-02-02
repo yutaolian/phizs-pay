@@ -7,7 +7,7 @@
         http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
     <!-- 读取配置文件-->
-    <util:properties id="pay" location="classpath*:pay_temp.properties"/>
+    <util:properties id="pay" location="classpath*:pay2.properties"/>
 
 	<bean id="alipayConfig" class="com.phizs.framework.pay.config.AlipayConfig">
 		<property name="app_id" value="${pay.alipay.app_id}"/>
