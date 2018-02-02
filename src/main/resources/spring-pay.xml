@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+    <!-- 读取配置文件-->
+    <util:properties id="pay" location="classpath*:pay_temp.properties"/>
+
+	<bean id="alipayConfig" class="com.phizs.framework.pay.config.AlipayConfig">
+		<property name="app_id" value="${pay.alipay.app_id}"/>
+        <property name="merchant_private_key_path" value="${pay.alipay.merchant_private_key_path}"/>
+        <property name="alipay_public_key_path" value="${pay.alipay.alipay_public_key_path}"/>
+        <property name="gatewayUrl" value="${pay.alipay.gatewayUrl}"/>
+        <property name="charset" value="${pay.alipay.charset}"/>
+        <property name="format" value="${pay.alipay.format}"/>
+        <property name="sign_type" value="${pay.alipay.sign_type}"/>
+        <property name="return_url" value="${pay.alipay.return_url}"/>
+        <property name="notify_url" value="${pay.alipay.notify_url}"/>
+        <property name="log_path" value="${pay.alipay.log_path}"/>
+        <!--自定义return url-->
+        <property name="pc_return_url" value="${pay.alipay.pc_return_url}"/>
+        <property name="m_return_url" value="${pay.alipay.m_return_url}"/>
+	</bean>
+
+    <bean id="wxpayConfig" class="com.phizs.framework.pay.config.WxpayConfig">
+        <property name="useSandbox" value="${pay.wxpay.useSandbox}"/>
+        <property name="appID" value="${pay.wxpay.appID}"/>
+        <property name="mchID" value="${pay.wxpay.mchID}"/>
+        <property name="keyPath" value="${pay.wxpay.keyPath}"/>
+        <property name="certStreamPath" value="${pay.wxpay.certStreamPath}"/>
+        <property name="httpConnectTimeoutMs" value="${pay.wxpay.httpConnectTimeoutMs}"/>
+        <property name="httpReadTimeoutMs" value="${pay.wxpay.httpReadTimeoutMs}"/>
+        <property name="notifyUrl" value="${pay.wxpay.notifyUrl}"/>
+    </bean>
+
+    <bean id="alipayExecutor" class="com.phizs.framework.pay.alipay.AlipayExecutor">
+        <property name="alipayConfig" ref="alipayConfig"/>
+    </bean>
+
+    <bean id="wxpayExecutor" class="com.phizs.framework.pay.wxpay.WxpayExecutor">
+        <property name="wxpayConfig" ref="wxpayConfig"/>
+    </bean>
+    
+</beans>
